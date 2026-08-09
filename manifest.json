@@ -1,0 +1,15 @@
+{
+  "name": "Blebets",
+  "short_name": "Blebets",
+  "start_url": "https://www.blebets.net/site/home",
+  "display": "standalone",
+  "background_color": "#0b0c10",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://www.blebets.net/favicon.ico",
+      "sizes": "192x192 512x512",
+      "type": "image/x-icon"
+    }
+  ]
+}
