@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทางลัดเข้าสู่ระบบ</title>
+    
+    <!-- แท็กตั้งค่า PWA และ Web App -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="เข้าสู่ระบบ">
+    <meta name="theme-color" content="#000000">
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b0c10;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            background: #1f2833;
+            border: 1px solid #c5a059;
+            border-radius: 16px;
+            padding: 30px 20px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.25);
+        }
+        h2 { color: #c5a059; margin-top: 0; font-size: 22px; }
+        p { color: #c5c6c7; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
+        
+        /* ปุ่มสำหรับ Android */
+        .btn-install {
+            background: linear-gradient(135deg, #d4af37, #c5a059);
+            color: #000000;
+            border: none;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+            display: none;
+        }
+        .btn-install:active { transform: scale(0.98); }
+
+        /* ปุ่มเข้าเว็บทันที */
+        .btn-direct {
+            display: block;
+            background: transparent;
+            color: #c5a059;
+            border: 1px solid #c5a059;
+            padding: 12px 20px;
+            font-size: 14px;
+            border-radius: 30px;
+            text-decoration: none;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* กล่องคำแนะนำสำหรับ iOS */
+        .ios-instruction {
+            display: none;
+            background: #0b0c10;
+            border: 1px dashed #c5a059;
+            padding: 15px;
+            text-align: left;
+            margin-top: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .ios-instruction span { color: #c5a059; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📌 ทางลัดเข้าใช้งาน</h2>
+    <p>เพิ่มไอคอนไว้บนหน้าจอมือถือ เพื่อความสะดวกในการเข้าใช้งานครั้งถัดไป</p>
+
+    <!-- ปุ่มติดตั้งสำหรับ Android -->
+    <button id="installBtn" class="btn-install">📲 กดเพิ่มลงหน้าจอโฮม</button>
+
+    <!-- คำแนะนำสำหรับ iOS (iPhone) -->
+    <div id="iosBox" class="ios-instruction">
+        <strong>📲 วิธีเพิ่มลงหน้าจอสำหรับ iPhone:</strong><br>
+        1. กดปุ่ม <span>แชร์</span> ด้านล่าง (รูปสี่เหลี่ยมลูกศรชี้ขึ้น ⬆️)<br>
+        2. เลื่อนลงมาเลือก <span>"เพิ่มไปยังหน้าจอโฮม"</span><br>
+        3. กด <span>"เพิ่ม"</span> มุมขวาบน
+    </div>
+
+    <!-- ปุ่มทางเลือกเข้าเว็บทันที -->
+    <a href="https://www.blebets.net/site/home" class="btn-direct">เข้าสู่หน้าเว็บโดยตรง ➔</a>
+</div>
+
+<script>
+    const targetUrl = "https://www.blebets.net/site/home";
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const iosBox = document.getElementById('iosBox');
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    // หากเปิดผ่านไอคอนบนหน้าจอโฮมแล้ว ให้ส่งไปที่หน้าหลักทันที
+    if (isStandalone) {
+        window.location.href = targetUrl;
+    }
+
+    // ตรวจจับ Android / Chrome
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choice) => {
+                if (choice.outcome === 'accepted') {
+                    // เมื่อเพิ่มสำเร็จ พาไปยังหน้าหลัก
+                    window.location.href = targetUrl;
+                }
+                deferredPrompt = null;
+            });
+        }
+    });
+
+    // ตรวจจับ iOS (iPhone)
+    if (isIOS && !isStandalone) {
+        iosBox.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
