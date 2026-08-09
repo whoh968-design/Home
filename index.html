@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ทางลัดเข้าสู่ระบบ</title>
-    
-    <!-- แท็กตั้งค่า PWA และ Web App -->
+    <title>เพิ่ม App ไว้หน้าจอ</title>
+
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -38,7 +37,6 @@
         h2 { color: #c5a059; margin-top: 0; font-size: 22px; }
         p { color: #c5c6c7; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
         
-        /* ปุ่มสำหรับ Android */
         .btn-install {
             background: linear-gradient(135deg, #d4af37, #c5a059);
             color: #000000;
@@ -53,24 +51,8 @@
             box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
             display: none;
         }
-        .btn-install:active { transform: scale(0.98); }
 
-        /* ปุ่มเข้าเว็บทันที */
-        .btn-direct {
-            display: block;
-            background: transparent;
-            color: #c5a059;
-            border: 1px solid #c5a059;
-            padding: 12px 20px;
-            font-size: 14px;
-            border-radius: 30px;
-            text-decoration: none;
-            margin-top: 15px;
-            font-weight: bold;
-        }
-
-        /* กล่องคำแนะนำสำหรับ iOS */
-        .ios-instruction {
+        .instruction-box {
             display: none;
             background: #0b0c10;
             border: 1px dashed #c5a059;
@@ -81,68 +63,85 @@
             font-size: 14px;
             line-height: 1.6;
         }
-        .ios-instruction span { color: #c5a059; font-weight: bold; }
+        .instruction-box span { color: #c5a059; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📌 ทางลัดเข้าใช้งาน</h2>
-    <p>เพิ่มไอคอนไว้บนหน้าจอมือถือ เพื่อความสะดวกในการเข้าใช้งานครั้งถัดไป</p>
+    <h2>📌 เพิ่ม App ไว้หน้าจอ</h2>
+    <p>กรุณาเพิ่มไอคอนลงหน้าจอมือถือเพื่อเข้าใช้งาน</p>
 
     <!-- ปุ่มติดตั้งสำหรับ Android -->
-    <button id="installBtn" class="btn-install">📲 กดเพิ่มลงหน้าจอโฮม</button>
+    <button id="installBtn" class="btn-install">📲 กดเพิ่ม App ไว้หน้าจอ</button>
+
+    <!-- คำแนะนำสำหรับ Android (แสดงกรณีเบราว์เซอร์ไม่ซัพพอร์ตปุ่มกด) -->
+    <div id="androidBox" class="instruction-box">
+        <strong>📲 วิธีเพิ่ม App สำหรับ Android:</strong><br>
+        1. กดปุ่ม <span>จุด 3 จุด</span> มุมขวาบน 📌<br>
+        2. เลือก <span>"เพิ่มลงในหน้าจอโฮม"</span> หรือ <span>"ติดตั้งแอป"</span>
+    </div>
 
     <!-- คำแนะนำสำหรับ iOS (iPhone) -->
-    <div id="iosBox" class="ios-instruction">
-        <strong>📲 วิธีเพิ่มลงหน้าจอสำหรับ iPhone:</strong><br>
+    <div id="iosBox" class="instruction-box">
+        <strong>📲 วิธีเพิ่ม App สำหรับ iPhone:</strong><br>
         1. กดปุ่ม <span>แชร์</span> ด้านล่าง (รูปสี่เหลี่ยมลูกศรชี้ขึ้น ⬆️)<br>
         2. เลื่อนลงมาเลือก <span>"เพิ่มไปยังหน้าจอโฮม"</span><br>
         3. กด <span>"เพิ่ม"</span> มุมขวาบน
     </div>
-
-    <!-- ปุ่มทางเลือกเข้าเว็บทันที -->
-    <a href="https://www.blebets.net/site/home" class="btn-direct">เข้าสู่หน้าเว็บโดยตรง ➔</a>
 </div>
 
 <script>
     const targetUrl = "https://www.blebets.net/site/home";
     let deferredPrompt;
+    
     const installBtn = document.getElementById('installBtn');
     const iosBox = document.getElementById('iosBox');
+    const androidBox = document.getElementById('androidBox');
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isLINE = /Line/i.test(ua);
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-    // หากเปิดผ่านไอคอนบนหน้าจอโฮมแล้ว ให้ส่งไปที่หน้าหลักทันที
+    // หากเปิดจากไอคอนหน้าจอโฮมแล้ว ให้พาไปหน้าหลักทันที
     if (isStandalone) {
         window.location.href = targetUrl;
     }
 
-    // ตรวจจับ Android / Chrome
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installBtn.style.display = 'block';
-    });
+    // กรณีเปิดใน LINE บน Android สั่งให้เด้งออกไปเปิดบน Chrome อัตโนมัติ
+    if (isLINE && !isIOS && !isStandalone) {
+        const currentUrl = window.location.href;
+        window.location.href = "intent://" + currentUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
+    }
+
+    // ทำงานปกติเมื่ออยู่นอก LINE
+    if (!isIOS && !isStandalone) {
+        androidBox.style.display = 'block';
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            androidBox.style.display = 'none';
+            installBtn.style.display = 'block';
+        });
+    }
+
+    if (isIOS && !isStandalone) {
+        iosBox.style.display = 'block';
+    }
 
     installBtn.addEventListener('click', () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choice) => {
                 if (choice.outcome === 'accepted') {
-                    // เมื่อเพิ่มสำเร็จ พาไปยังหน้าหลัก
                     window.location.href = targetUrl;
                 }
                 deferredPrompt = null;
             });
         }
     });
-
-    // ตรวจจับ iOS (iPhone)
-    if (isIOS && !isStandalone) {
-        iosBox.style.display = 'block';
-    }
 </script>
 
 </body>
