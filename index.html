@@ -37,6 +37,7 @@
         h2 { color: #c5a059; margin-top: 0; font-size: 22px; }
         p { color: #c5c6c7; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
         
+        /* ปุ่มสีทอง แสดงตลอดเวลา */
         .btn-install {
             background: linear-gradient(135deg, #d4af37, #c5a059);
             color: #000000;
@@ -49,8 +50,9 @@
             width: 100%;
             margin-top: 10px;
             box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
-            display: none;
+            display: block; /* แสดงเสมอ */
         }
+        .btn-install:active { transform: scale(0.98); }
 
         .instruction-box {
             display: none;
@@ -72,10 +74,10 @@
     <h2>📌 เพิ่ม App ไว้หน้าจอ</h2>
     <p>กรุณาเพิ่มไอคอนลงหน้าจอมือถือเพื่อเข้าใช้งาน</p>
 
-    <!-- ปุ่มติดตั้งสำหรับ Android -->
+    <!-- ปุ่มติดตั้งสีทอง -->
     <button id="installBtn" class="btn-install">📲 กดเพิ่ม App ไว้หน้าจอ</button>
 
-    <!-- คำแนะนำสำหรับ Android (แสดงกรณีเบราว์เซอร์ไม่ซัพพอร์ตปุ่มกด) -->
+    <!-- คำแนะนำสำหรับ Android (แสดงคู่กันหรือเมื่อกดปุ่ม) -->
     <div id="androidBox" class="instruction-box">
         <strong>📲 วิธีเพิ่ม App สำหรับ Android:</strong><br>
         1. กดปุ่ม <span>จุด 3 จุด</span> มุมขวาบน 📌<br>
@@ -104,31 +106,28 @@
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-    // หากเปิดจากไอคอนหน้าจอโฮมแล้ว ให้พาไปหน้าหลักทันที
+    // เปิดผ่านไอคอนหน้าจอโฮมแล้ว ให้ไปหน้าหลักทันที
     if (isStandalone) {
         window.location.href = targetUrl;
     }
 
-    // กรณีเปิดใน LINE บน Android สั่งให้เด้งออกไปเปิดบน Chrome อัตโนมัติ
+    // เปิดใน LINE บน Android สั่งเปิดด้วย Chrome อัตโนมัติ
     if (isLINE && !isIOS && !isStandalone) {
         const currentUrl = window.location.href;
         window.location.href = "intent://" + currentUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
     }
 
-    // ทำงานปกติเมื่ออยู่นอก LINE
-    if (!isIOS && !isStandalone) {
-        androidBox.style.display = 'block';
+    // ดักจับการพร้อมติดตั้งของ Android/Chrome
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+    });
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            androidBox.style.display = 'none';
-            installBtn.style.display = 'block';
-        });
-    }
-
+    // แสดงคำแนะนำตามระบบ
     if (isIOS && !isStandalone) {
         iosBox.style.display = 'block';
+    } else if (!isStandalone) {
+        androidBox.style.display = 'block';
     }
 
     installBtn.addEventListener('click', () => {
@@ -140,6 +139,10 @@
                 }
                 deferredPrompt = null;
             });
+        } else if (isIOS) {
+            alert('สำหรับ iPhone: กรุณากดปุ่ม "แชร์" (รูป ⬆️ ด้านล่าง) แล้วเลือก "เพิ่มไปยังหน้าจอโฮม" ครับ');
+        } else {
+            alert('กรุณากดปุ่ม จุด 3 จุด มุมขวาบนของเบราว์เซอร์ แล้วเลือก "เพิ่มลงในหน้าจอโฮม" หรือ "ติดตั้งแอป" ครับ');
         }
     });
 </script>
