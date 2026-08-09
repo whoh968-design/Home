@@ -86,7 +86,7 @@
 
 <script>
     const targetUrl = "https://www.blebets.net/site/home";
-    let deferredPrompt;
+    let deferredPrompt = null;
 
     const installBtn = document.getElementById('installBtn');
     const iosBox = document.getElementById('iosBox');
@@ -101,7 +101,7 @@
         navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
-    // 2. ถ้าเปิดผ่านไอคอนหน้าจอโฮมแล้ว ให้ไปหน้าหลักทันที
+    // 2. ถ้าเปิดผ่านไอคอนแอปหน้าจอโฮมแล้ว ให้พาเข้าเว็บหลักทันที
     if (isStandalone) {
         window.location.href = targetUrl;
     }
@@ -122,9 +122,10 @@
         iosBox.style.display = 'block';
     }
 
-    // 5. เมื่อกดปุ่ม เรียกหน้าต่างติดตั้งระบบขึ้นทันที (ไม่มี Alert)
+    // 5. เมื่อกดปุ่มสีทอง
     installBtn.addEventListener('click', () => {
         if (deferredPrompt) {
+            // ถ้าระบบพร้อมติดตั้ง ให้เด้งหน้าต่างติดตั้ง
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choice) => {
                 if (choice.outcome === 'accepted') {
@@ -132,6 +133,9 @@
                 }
                 deferredPrompt = null;
             });
+        } else {
+            // ถ้าระบบเบราว์เซอร์ยังไม่พร้อม ให้เปิดไปหน้าเว็บหลักทันที (ปุ่มจะไม่ค้าง)
+            window.location.href = targetUrl;
         }
     });
 </script>
