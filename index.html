@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เพิ่ม App ไว้หน้าจอ</title>
 
+    <!-- แท็กตั้งค่า Web App -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="เข้าสู่ระบบ">
+    <meta name="apple-mobile-web-app-title" content="Blebets">
     <meta name="theme-color" content="#000000">
 
     <style>
@@ -33,11 +34,12 @@
             max-width: 400px;
             width: 100%;
             box-shadow: 0 0 20px rgba(197, 160, 89, 0.25);
+            position: relative;
         }
         h2 { color: #c5a059; margin-top: 0; font-size: 22px; }
         p { color: #c5c6c7; font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
         
-        /* ปุ่มสีทอง แสดงตลอดเวลา */
+        /* ปุ่มสีทองหลัก */
         .btn-install {
             background: linear-gradient(135deg, #d4af37, #c5a059);
             color: #000000;
@@ -50,10 +52,11 @@
             width: 100%;
             margin-top: 10px;
             box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
-            display: block; /* แสดงเสมอ */
+            display: block;
         }
         .btn-install:active { transform: scale(0.98); }
 
+        /* กล่องคำแนะนำสำหรับ iOS / เบราว์เซอร์ที่ไม่รองรับปุ่มกด */
         .instruction-box {
             display: none;
             background: #0b0c10;
@@ -74,29 +77,29 @@
     <h2>📌 เพิ่ม App ไว้หน้าจอ</h2>
     <p>กรุณาเพิ่มไอคอนลงหน้าจอมือถือเพื่อเข้าใช้งาน</p>
 
-    <!-- ปุ่มติดตั้งสีทอง -->
+    <!-- ปุ่มกดติดตั้ง -->
     <button id="installBtn" class="btn-install">📲 กดเพิ่ม App ไว้หน้าจอ</button>
 
-    <!-- คำแนะนำสำหรับ Android (แสดงคู่กันหรือเมื่อกดปุ่ม) -->
-    <div id="androidBox" class="instruction-box">
-        <strong>📲 วิธีเพิ่ม App สำหรับ Android:</strong><br>
-        1. กดปุ่ม <span>จุด 3 จุด</span> มุมขวาบน 📌<br>
-        2. เลือก <span>"เพิ่มลงในหน้าจอโฮม"</span> หรือ <span>"ติดตั้งแอป"</span>
-    </div>
-
-    <!-- คำแนะนำสำหรับ iOS (iPhone) -->
+    <!-- คำแนะนำสำหรับ iPhone (แสดงกรณีเปิดบน iOS) -->
     <div id="iosBox" class="instruction-box">
         <strong>📲 วิธีเพิ่ม App สำหรับ iPhone:</strong><br>
         1. กดปุ่ม <span>แชร์</span> ด้านล่าง (รูปสี่เหลี่ยมลูกศรชี้ขึ้น ⬆️)<br>
         2. เลื่อนลงมาเลือก <span>"เพิ่มไปยังหน้าจอโฮม"</span><br>
         3. กด <span>"เพิ่ม"</span> มุมขวาบน
     </div>
+
+    <!-- คำแนะนำสำหรับ Android กรณีเครื่องยังไม่ปล่อยปุ่มติดตั้ง -->
+    <div id="androidBox" class="instruction-box">
+        <strong>📲 วิธีเพิ่ม App สำหรับ Android:</strong><br>
+        1. กดปุ่ม <span>จุด 3 จุด</span> มุมขวาบน 📌<br>
+        2. เลือก <span>"เพิ่มลงในหน้าจอโฮม"</span> หรือ <span>"ติดตั้งแอป"</span>
+    </div>
 </div>
 
 <script>
     const targetUrl = "https://www.blebets.net/site/home";
     let deferredPrompt;
-    
+
     const installBtn = document.getElementById('installBtn');
     const iosBox = document.getElementById('iosBox');
     const androidBox = document.getElementById('androidBox');
@@ -106,32 +109,49 @@
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-    // เปิดผ่านไอคอนหน้าจอโฮมแล้ว ให้ไปหน้าหลักทันที
+    // 1. ถ้าเปิดจากไอคอนแอปหน้าจอโฮมแล้ว ให้เปิดเข้าเว็บหลักทันที
     if (isStandalone) {
         window.location.href = targetUrl;
     }
 
-    // เปิดใน LINE บน Android สั่งเปิดด้วย Chrome อัตโนมัติ
+    // 2. ลงทะเบียน Web Manifest อัตโนมัติเพื่อให้ Chrome อนุญาตให้ติดตั้งแอป
+    const manifestData = {
+        "name": "Blebets",
+        "short_name": "Blebets",
+        "start_url": targetUrl,
+        "display": "standalone",
+        "background_color": "#0b0c10",
+        "theme_color": "#000000"
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+    const manifestUrl = URL.createObjectURL(manifestBlob);
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = manifestUrl;
+    document.head.appendChild(link);
+
+    // 3. บังคับสลับเบราว์เซอร์หากเปิดใน LINE บน Android
     if (isLINE && !isIOS && !isStandalone) {
         const currentUrl = window.location.href;
         window.location.href = "intent://" + currentUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
     }
 
-    // ดักจับการพร้อมติดตั้งของ Android/Chrome
+    // 4. ดักจับสัญญาณพร้อมติดตั้งของ Android Chrome
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
+        androidBox.style.display = 'none'; // ซ่อนกล่องคำแนะนำเมื่อระบบพร้อมติดตั้งทันที
     });
 
-    // แสดงคำแนะนำตามระบบ
+    // แสดงการตั้งค่าตามประเภทระบบ
     if (isIOS && !isStandalone) {
         iosBox.style.display = 'block';
-    } else if (!isStandalone) {
-        androidBox.style.display = 'block';
     }
 
+    // 5. เมื่อกดปุ่มสีทอง
     installBtn.addEventListener('click', () => {
         if (deferredPrompt) {
+            // เรียกหน้าต่างติดตั้งแอปของระบบปฏิบัติการขึ้นมาทันที (ไม่มี Alert)
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choice) => {
                 if (choice.outcome === 'accepted') {
@@ -139,10 +159,9 @@
                 }
                 deferredPrompt = null;
             });
-        } else if (isIOS) {
-            alert('สำหรับ iPhone: กรุณากดปุ่ม "แชร์" (รูป ⬆️ ด้านล่าง) แล้วเลือก "เพิ่มไปยังหน้าจอโฮม" ครับ');
-        } else {
-            alert('กรุณากดปุ่ม จุด 3 จุด มุมขวาบนของเบราว์เซอร์ แล้วเลือก "เพิ่มลงในหน้าจอโฮม" หรือ "ติดตั้งแอป" ครับ');
+        } else if (!isIOS) {
+            // แสดงกล่องสไตล์สีดำ-ทองในหน้าเว็บแทนป๊อปอัป alert
+            androidBox.style.display = 'block';
         }
     });
 </script>
